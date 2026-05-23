@@ -50,6 +50,7 @@ export function Navbar() {
     useAuthContext();
 
   const dropdownRef = useRef(null);
+  const mobileMenuRef = useRef(null);
   const pathname = usePathname();
   const { theme, setTheme } = useTheme();
   const [mounted, setMounted] = useState(false);
@@ -136,6 +137,45 @@ useEffect(() => {
     return () => {
       document.body.classList.remove("overflow-hidden");
     };
+  }, [isMenuOpen]);
+
+  // Trap focus in mobile menu
+  useEffect(() => {
+    if (!isMenuOpen || !mobileMenuRef.current) return;
+
+    const menuNode = mobileMenuRef.current;
+    const focusableElements = menuNode.querySelectorAll(
+      'button, [href], input, select, textarea, [tabindex]:not([tabindex="-1"])'
+    );
+    
+    if (focusableElements.length === 0) return;
+
+    const firstElement = focusableElements[0];
+    const lastElement = focusableElements[focusableElements.length - 1];
+
+    // Focus the first focusable element when the menu opens
+    setTimeout(() => {
+      if (firstElement) firstElement.focus();
+    }, 100);
+
+    const handleTab = (e) => {
+      if (e.key !== "Tab") return;
+
+      if (e.shiftKey) {
+        if (document.activeElement === firstElement) {
+          e.preventDefault();
+          lastElement.focus();
+        }
+      } else {
+        if (document.activeElement === lastElement) {
+          e.preventDefault();
+          firstElement.focus();
+        }
+      }
+    };
+
+    menuNode.addEventListener("keydown", handleTab);
+    return () => menuNode.removeEventListener("keydown", handleTab);
   }, [isMenuOpen]);
 
   // Close menus on route change
@@ -580,7 +620,10 @@ useEffect(() => {
             }
           />
 
-          <div className="fixed top-0 right-0 h-full w-80 max-w-[85vw] bg-background text-foreground z-[52] md:hidden border-l border-border shadow-2xl transition-colors duration-300">
+          <div 
+            ref={mobileMenuRef}
+            className="fixed top-0 right-0 h-full w-80 max-w-[85vw] bg-background text-foreground z-[52] md:hidden border-l border-border shadow-2xl transition-colors duration-300"
+          >
             <div className="p-6 border-b border-border flex justify-between items-center">
               <h2 className="text-foreground text-lg font-bold">
                 Menu
