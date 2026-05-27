@@ -41,7 +41,8 @@ jobs:
               state: 'open',
               per_page: 100
             });
-            const allPRs = { data: allPRsData };
+            // Authoritative fallback: explicitly filter for only open PRs to prevent any API edge-case leakage of closed/merged PRs
+            const allPRs = { data: allPRsData.filter(pr => pr.state === 'open') };
 
             // Filter open PRs by this contributor
             const prs = { data: allPRs.data.filter(pr => pr.user && pr.user.login === author) };
