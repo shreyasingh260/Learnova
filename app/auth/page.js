@@ -129,17 +129,14 @@ function AuthPageContent() {
 
       if (result.needsVerification) {
         toast.success("Verification email sent! Please check your inbox.");
-        setShowRoleSelection(true);
         router.push("/verify");
       } else if (result.needsProfile) {
         toast.success("Account created successfully!");
-        setShowRoleSelection(true);
         router.push("/profile");
       } else if (result.success) {
         toast.success(
           isLogin ? "Successfully logged in!" : "Account created successfully!",
         );
-        setShowRoleSelection(true);
         redirectBasedOnRole(result.userData.role, router);
       } else {
         toast.error(result.error || "Authentication failed. Please try again.");
