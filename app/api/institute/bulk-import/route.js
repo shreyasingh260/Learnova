@@ -2,7 +2,7 @@ import { NextResponse } from "next/server";
 import { initFirebaseAdmin, getAdminDb } from "@/lib/firebase-admin";
 import admin from "firebase-admin";
 import { connectDb } from "@/lib/mongodb";
-import { authenticateRequest, parseJSON } from "@/lib/error-handler";
+import { requireRole } from "@/lib/rbac";
 import crypto from "crypto";
 
 export const dynamic = "force-dynamic";
@@ -11,12 +11,8 @@ const MAX_BULK_IMPORT_PAYLOAD_BYTES = 1024 * 1024;
 
 export async function POST(req) {
   try {
-    // Authenticate the request
-    const decodedToken = await authenticateRequest(req);
-    
-    // Check if the user is authorized (institute/admin)
-    // Here we can fetch user profile to check role, but assuming valid token is enough for MVP.
-    // In a real scenario, check if decodedToken.role === "institute" or similar.
+    // Authenticate and authorize — only institute or admin can bulk-import
+    const { payload: decodedToken } = await requireRole(req, ["institute", "admin"]);
 
     const body = await parseJSON(req, MAX_BULK_IMPORT_PAYLOAD_BYTES);
     const { students } = body;
